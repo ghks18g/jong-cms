@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres.jong.cms:
+    image: postgres:15.3
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: EXf3hZXz4Kzqx5sr
+      POSTGRES_DB: jong_cms
+    volumes:
+      - postgresql.jong.cms:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5433:5432' # temporary
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '200k'
+        max-file: '10'
+
+volumes:
+  postgresql.jong.cms:
