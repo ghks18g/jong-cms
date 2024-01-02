@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { ReactNode } from "react";
 import RootLayout from "./root";
 import { GetServerSideProps } from "next";
+import AuthGuard from "client/guards/AuthGuard";
 
 type Props = {
   children: ReactNode;
@@ -14,7 +15,11 @@ export default function Layout({ variant = "root", children }: Props) {
   //TODO :  check token verify
 
   // TODO : return Layout Components and AuthGuard
-  return <RootLayout>{children}</RootLayout>;
+  return (
+    // <AuthGuard>
+    <RootLayout>{children}</RootLayout>
+    // </AuthGuard>
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async ({

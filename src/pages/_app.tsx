@@ -15,6 +15,7 @@ import NotistackProvider from "client/components/NotistackProvider";
 import ProgressBar from "client/components/ProgressBar";
 import Head from "next/head";
 import { SettingsValueProps } from "client/components/settings/type";
+import { AuthProvider } from "client/contexts/AuthContext";
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => JSX.Element;
@@ -38,12 +39,14 @@ function AppWrapper(props: AppWrapperProps) {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <ThemeProvider>
-        <NotistackProvider>
-          <ProgressBar />
-          <AppComponent {...props}></AppComponent>
-        </NotistackProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <NotistackProvider>
+            <ProgressBar />
+            <AppComponent {...props}></AppComponent>
+          </NotistackProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </ApolloProvider>
   );
 }
