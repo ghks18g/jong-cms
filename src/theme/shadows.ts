@@ -1,8 +1,8 @@
 // @mui
-import { alpha } from '@mui/material/styles';
-import { Shadows } from '@mui/material/styles/shadows';
+import { alpha } from "@mui/material/styles";
+import { Shadows } from "@mui/material/styles/shadows";
 //
-import palette from './palette';
+import palette from "./palette";
 
 // ----------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ interface CustomShadowOptions {
   dropdown: string;
 }
 
-declare module '@mui/material/styles' {
+declare module "@mui/material/styles" {
   interface Theme {
     customShadows: CustomShadowOptions;
   }
@@ -36,14 +36,14 @@ declare module '@mui/material/styles' {
 }
 
 const LIGHT_MODE = palette.light.grey[500];
-const DARK_MODE = '#000000';
+const DARK_MODE = "#000000";
 
 const createShadow = (color: string): Shadows => {
   const transparent1 = alpha(color, 0.2);
   const transparent2 = alpha(color, 0.14);
   const transparent3 = alpha(color, 0.12);
   return [
-    'none',
+    "none",
     `0px 2px 1px -1px ${transparent1},0px 1px 1px 0px ${transparent2},0px 1px 3px 0px ${transparent3}`,
     `0px 3px 1px -2px ${transparent1},0px 2px 2px 0px ${transparent2},0px 1px 5px 0px ${transparent3}`,
     `0px 3px 3px -2px ${transparent1},0px 3px 4px 0px ${transparent2},0px 1px 8px 0px ${transparent3}`,
@@ -72,6 +72,7 @@ const createShadow = (color: string): Shadows => {
 };
 
 const createCustomShadow = (color: string) => {
+  // const transparent = alpha(color, 0.16);
   const transparent = alpha(color, 0.16);
   return {
     z1: `0 1px 2px 0 ${transparent}`,
@@ -88,9 +89,15 @@ const createCustomShadow = (color: string) => {
     warning: `0 8px 16px 0 ${alpha(palette.light.warning.main, 0.24)}`,
     error: `0 8px 16px 0 ${alpha(palette.light.error.main, 0.24)}`,
     //
-    card: `0 0 2px 0 ${alpha(color, 0.2)}, 0 12px 24px -4px ${alpha(color, 0.12)}`,
+    card: `0 0 2px 0 ${alpha(color, 0.2)}, 0 12px 24px -4px ${alpha(
+      color,
+      0.12
+    )}`,
     dialog: `-40px 40px 80px -8px ${alpha(palette.light.common.black, 0.24)}`,
-    dropdown: `0 0 2px 0 ${alpha(color, 0.24)}, -20px 20px 40px -4px ${alpha(color, 0.24)}`,
+    dropdown: `0 0 2px 0 ${alpha(color, 0.24)}, -20px 20px 40px -4px ${alpha(
+      color,
+      0.24
+    )}`,
   };
 };
 

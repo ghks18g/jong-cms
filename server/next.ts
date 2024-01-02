@@ -25,12 +25,12 @@ const nextApp = async () => {
     const referer = req?.headers?.referer || null;
     const hostname = req.get("host");
 
-    console.log("CERT_PUBLIC:", CERT_PUBLIC);
-    console.log("CERT_PRIVATE:", CERT_PRIVATE);
+    // console.log("CERT_PUBLIC:", CERT_PUBLIC);
+    // console.log("CERT_PRIVATE:", CERT_PRIVATE);
     // console.log("req:", req);
-    console.log("parsedUrl:", parsedUrl);
-    console.log("referer:", referer);
-    console.log("hostname:", hostname);
+    // console.log("parsedUrl:", parsedUrl);
+    // console.log("referer:", referer);
+    // console.log("hostname:", hostname);
 
     return handle(req, res, parsedUrl);
   });
