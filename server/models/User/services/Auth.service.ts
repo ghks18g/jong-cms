@@ -296,7 +296,13 @@ export default class AuthService {
       { destroyed: true }
     );
 
-    const newRefreshToken = await dataSource.manager.save(userTokenEntity);
+    const newUserToken = await dataSource.manager.save(userTokenEntity);
+    const newRefreshToken = await jwt.sign(
+      { ...claims, tokenId: newUserToken.id },
+      CERT_PRIVATE,
+      signOptions
+    );
+
     return {
       newRefreshToken,
       expiresIn: signOptions.expiresIn,

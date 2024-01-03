@@ -82,7 +82,7 @@ export class TokenResolver {
         await authService.createRefreshTokenByRefreshToken(refreshToken);
 
       const tokenObject = new TokenObject();
-      tokenObject.refreshToken = refreshToken;
+      tokenObject.refreshToken = newRefreshToken;
       tokenObject.accessToken = accessToken;
       tokenObject.tokenType = TOKEN_TYPE;
 
@@ -107,7 +107,7 @@ export class TokenResolver {
         await authService.createRefreshTokenByRefreshToken(refreshToken);
 
       const tokenObject = new TokenObject();
-      tokenObject.refreshToken = refreshToken;
+      tokenObject.refreshToken = newRefreshToken;
       tokenObject.idToken = idToken;
       tokenObject.tokenType = TOKEN_TYPE;
 
