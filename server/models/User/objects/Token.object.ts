@@ -7,17 +7,14 @@ import { ObjectType, Field } from "type-graphql";
  */
 @ObjectType()
 export class TokenObject {
-  //   @Field({ nullable: true })
-  //   token: string;
-
   @Field({ nullable: true })
-  accessToken: string;
+  accessToken?: string;
 
   @Field({ nullable: true })
   refreshToken: string;
 
   @Field({ nullable: true })
-  expiresIn: number;
+  idToken?: string;
 
   @Field({ nullable: true })
   tokenType: string;
@@ -25,6 +22,9 @@ export class TokenObject {
 
 @ObjectType()
 export class AccessTokenDataObject {
+  @Field({ nullable: true })
+  tokenId: string;
+
   @Field()
   userId: string;
 
@@ -34,24 +34,42 @@ export class AccessTokenDataObject {
   @Field()
   provider: string;
 
-  @Field(() => GraphQLJSONObject, { nullable: true })
-  oauthToken: { [provider: string]: any };
+  @Field(() => [String], { nullable: true })
+  scope: string[];
+}
+
+@ObjectType()
+export class IdTokenDataObject {
+  @Field({ nullable: true })
+  tokenId?: string;
 
   @Field({ nullable: true })
-  passwordUpdatedDate: Date;
+  userId: string;
 
   @Field({ nullable: true })
-  tokenId: string;
+  name?: string;
 
   @Field({ nullable: true })
-  verifyTerm?: Date;
+  picture?: string;
+
+  @Field({ nullable: true })
+  email?: string;
+
+  @Field({ nullable: true })
+  emailVerified?: boolean;
+
+  @Field({ nullable: true })
+  emailVerifiedAt?: Date;
 
   @Field({ nullable: true })
   phoneNumber?: string;
 
   @Field({ nullable: true })
-  reported?: Date;
+  phoneNumberVerified?: boolean;
 
   @Field({ nullable: true })
-  verifiedAt?: Date;
+  phoneNumberVerifiedAt?: Date;
+
+  @Field({ nullable: true })
+  fcmToken?: string;
 }

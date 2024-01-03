@@ -64,10 +64,8 @@ const context = async ({
   res: Response;
 }): Promise<Partial<Context>> => {
   await DataSourceService.getDataSource();
-  console.log("req asdasdasd:", req);
+  // console.log("req asdasdasd:", req);
   const user = await parseAuthHeader(req.headers["authorization"] as string);
-
-  // const user = null;
 
   return { req, res, user };
 };

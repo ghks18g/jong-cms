@@ -13,6 +13,7 @@ import {
   OneToMany,
   OneToOne,
   PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { UserAuthEntity } from "./UserAuth.entity";
@@ -20,24 +21,36 @@ import { UserAuthEntity } from "./UserAuth.entity";
 @Entity()
 export class UserEntity extends BaseEntity {
   @Index()
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn("uuid")
   id: string;
-
-  @Column()
-  provider: string;
-
-  @Column({ nullable: true })
-  email: string;
 
   @Column({ nullable: true })
   name: string;
 
   @Column({ nullable: true })
-  profile: string;
+  picture: string; // user profile Image
 
+  // ----------------- email data --------------------
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  emailVerified?: boolean;
+
+  @Column({ nullable: true })
+  emailVerifiedAt?: Date;
+  // -------------------------------------------------
+
+  // --------------- phone number data ---------------
   @Column({ nullable: true })
   phoneNumber?: string;
 
+  @Column({ nullable: true })
+  phoneNumberVerified?: boolean;
+
+  @Column({ nullable: true })
+  phoneNumberVerifiedAt?: Date;
+  // -------------------------------------------------
   @Column({ nullable: true })
   fcmToken?: string;
 
@@ -56,7 +69,7 @@ export class UserEntity extends BaseEntity {
 
   // 관계 -----------------
   @OneToMany((type) => UserAuthEntity, (entity) => entity.user)
-  auth: UserAuthEntity;
+  auth: UserAuthEntity[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdDate: Date;

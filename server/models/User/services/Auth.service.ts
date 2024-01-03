@@ -9,14 +9,12 @@ import {
   CERT_PUBLIC,
   access_token_expiresIn,
   refresh_token_expiresIn,
+  id_token_expiresIn,
   issuer,
 } from "env.config";
 import jwt from "jsonwebtoken";
 import { UserTokenEntity } from "../entities/UserToken.entity";
 import { AccessTokenDataObject } from "../objects/Token.object";
-
-export const REFRESH_TOKEN_SUBJECT = "refresh_token";
-export const ACCESS_TOKEN_SUBJECT = "access_token";
 
 /**
  *  로그인 시 인증 방법 입니다.
@@ -28,6 +26,12 @@ export enum IProvider {
   KAKAO = "kakao",
   APPLE = "apple",
   PASSWORD = "password",
+}
+
+export enum TokenSubject {
+  REFRESH_TOKEN_SUBJECT = "refresh_token",
+  ACCESS_TOKEN_SUBJECT = "access_token",
+  ID_TOKEN_SUBJECT = "id_token",
 }
 
 export const TOKEN_TYPE = "Bearer";
@@ -47,6 +51,7 @@ export interface IRefreshTokenData {
   userId: string;
   email: string;
   provider: string;
+  token_type: string;
   // verifiedEmail?: boolean;
   // verifiedEmailAt?: Date;
   // passwordUpdatedDate?: Date;
@@ -58,6 +63,22 @@ export interface IAccessTokenData {
   email: string;
   provider: string;
   scope?: string[];
+  token_type: string;
+}
+
+export interface IIdTokenData {
+  tokenId?: string;
+  userId: string;
+  name?: string;
+  picture?: string;
+  email?: string;
+  emailVerified?: boolean;
+  emailVerifiedAt?: Date;
+  phoneNumber?: string;
+  phoneNumberVerified?: boolean;
+  phoneNumberVerifiedAt?: Date;
+  fcmToken?: string;
+  token_type: string;
 }
 
 export default class AuthService {
@@ -193,20 +214,26 @@ export default class AuthService {
       throw new Error("Not exists user.");
     }
 
+    await dataSource.manager.update(
+      UserTokenEntity,
+      { userId: user.id },
+      { destroyed: true }
+    );
+
     const claims: IRefreshTokenData = {
       userId: user.id,
       email,
       // passwordUpdatedDate: user?.auth?.[0]?.updatedDate, // token에 password를 업데이트한 날짜 정보를 포함시키기 위한 코드 입니다.,
+      token_type: TOKEN_TYPE,
       provider,
       // oauthToken,
     };
 
     const signOptions: jwt.SignOptions = {
       algorithm: "ES256",
-      subject: REFRESH_TOKEN_SUBJECT,
+      subject: TokenSubject.REFRESH_TOKEN_SUBJECT,
       expiresIn: refresh_token_expiresIn, // default value 3days (.env)
       issuer: issuer,
-      token_type: TOKEN_TYPE,
     };
 
     const userTokenEntity = new UserTokenEntity();
@@ -231,9 +258,54 @@ export default class AuthService {
     };
   }
 
+  async createRefreshTokenByRefreshToken(beforeRefreshToken: string) {
+    const refreshTokenData = (await this.verifyToken(
+      beforeRefreshToken,
+      TokenSubject.REFRESH_TOKEN_SUBJECT
+    )) as jwt.JwtPayload & IRefreshTokenData;
+
+    const dataSource = await DataSourceService.getDataSource();
+
+    const claims: IRefreshTokenData = {
+      userId: refreshTokenData.userId,
+      email: refreshTokenData.email,
+      // passwordUpdatedDate: user?.auth?.[0]?.updatedDate, // token에 password를 업데이트한 날짜 정보를 포함시키기 위한 코드 입니다.,
+      token_type: TOKEN_TYPE,
+      provider: refreshTokenData.provider,
+      // oauthToken,
+    };
+
+    const signOptions: jwt.SignOptions = {
+      algorithm: "ES256",
+      subject: TokenSubject.REFRESH_TOKEN_SUBJECT,
+      expiresIn: refresh_token_expiresIn, // default value 3days (.env)
+      issuer: issuer,
+    };
+
+    const userTokenEntity = new UserTokenEntity();
+    userTokenEntity.userId = claims.userId;
+    userTokenEntity.provider = claims.provider;
+    userTokenEntity.algorithm = signOptions.algorithm;
+    userTokenEntity.subject = signOptions.subject;
+    userTokenEntity.expiresIn = signOptions.expiresIn as number;
+    userTokenEntity.issuer = signOptions.issuer;
+
+    await dataSource.manager.update(
+      UserTokenEntity,
+      { id: refreshTokenData.tokenId },
+      { destroyed: true }
+    );
+
+    const newRefreshToken = await dataSource.manager.save(userTokenEntity);
+    return {
+      newRefreshToken,
+      expiresIn: signOptions.expiresIn,
+    };
+  }
+
   async createAccessToken(refreshToken: string) {
     const token = jwt.verify(refreshToken, CERT_PUBLIC) as jwt.JwtPayload;
-    if (token.sub !== REFRESH_TOKEN_SUBJECT) {
+    if (token.sub !== TokenSubject.REFRESH_TOKEN_SUBJECT) {
       throw new Error("Invalid token");
     }
     const { tokenId, userId, email, provider } = token;
@@ -264,11 +336,12 @@ export default class AuthService {
       email,
       provider,
       scope: scope,
+      token_type: TOKEN_TYPE,
     };
 
     const signOptions: jwt.SignOptions = {
       algorithm: "ES256",
-      subject: ACCESS_TOKEN_SUBJECT,
+      subject: TokenSubject.ACCESS_TOKEN_SUBJECT,
       expiresIn: access_token_expiresIn,
       issuer: issuer,
     };
@@ -318,5 +391,87 @@ export default class AuthService {
       accessToken,
       expiresIn: signOptions.expiresIn,
     };
+  }
+
+  async createIdToken(refreshToken: string) {
+    const token = jwt.verify(refreshToken, CERT_PUBLIC) as jwt.JwtPayload;
+    if (token.sub !== TokenSubject.REFRESH_TOKEN_SUBJECT) {
+      throw new Error("Invalid token");
+    }
+    const { tokenId, userId, email, provider } = token;
+
+    const dataSource = await DataSourceService.getDataSource();
+
+    const userToken = await dataSource.manager
+      .createQueryBuilder(UserTokenEntity, "token")
+      .where("id = :tokenId", { tokenId })
+      .getOne();
+
+    if (!userToken || userToken.destroyed) {
+      throw new Error("Invalid token");
+    }
+
+    const user = await dataSource.manager
+      .createQueryBuilder(UserEntity, "user")
+      .leftJoinAndSelect("user.auth", "userAuth")
+      .where("user.id = :userId", { userId })
+      .getOne();
+
+    const userAuth = user.auth.find(
+      (auth) => auth.identifyProvider === provider
+    );
+
+    if (!userAuth) {
+      throw new Error(`not exist user auth(${provider})`);
+    }
+
+    const claims: IIdTokenData = {
+      tokenId: token.tokenId,
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+      emailVerified: !!user.emailVerified ? user.emailVerified : false,
+      emailVerifiedAt: !!user.emailVerifiedAt
+        ? user.emailVerifiedAt
+        : undefined,
+      phoneNumber: !!user.phoneNumber ? user.phoneNumber : undefined,
+      phoneNumberVerified: !!user.phoneNumberVerified
+        ? user.phoneNumberVerified
+        : undefined,
+      phoneNumberVerifiedAt: !!user.phoneNumberVerifiedAt
+        ? user.phoneNumberVerifiedAt
+        : undefined,
+      token_type: TOKEN_TYPE,
+    };
+
+    const signOptions: jwt.SignOptions = {
+      algorithm: "ES256",
+      subject: TokenSubject.ID_TOKEN_SUBJECT,
+      expiresIn: id_token_expiresIn,
+      issuer: issuer,
+    };
+
+    const idToken = await jwt.sign(claims, CERT_PRIVATE, signOptions);
+
+    return {
+      idToken,
+      expiresIn: signOptions.expiresIn,
+    };
+  }
+
+  async verifyToken(token: string, sub: TokenSubject) {
+    try {
+      const decodedTokenData = jwt.verify(token, CERT_PUBLIC);
+
+      if (decodedTokenData.sub !== sub) {
+        throw new Error("Invalid token");
+      }
+
+      return decodedTokenData;
+    } catch (e) {
+      console.log("[AuthService] verify token Error: ", e);
+      return null;
+    }
   }
 }

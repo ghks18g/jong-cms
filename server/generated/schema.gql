@@ -3,7 +3,53 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type AccessTokenDataObject {
+  email: String!
+  provider: String!
+  scope: [String!]
+  tokenId: String
+  userId: String!
+}
+
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
+type IdTokenDataObject {
+  email: String
+  emailVerified: Boolean
+  emailVerifiedAt: DateTime
+  fcmToken: String
+  name: String
+  phoneNumber: String
+  phoneNumberVerified: Boolean
+  phoneNumberVerifiedAt: DateTime
+  picture: String
+  tokenId: String
+  userId: String
+}
+
+type Mutation {
+  checkRegistry(email: String!): Boolean!
+  loginWithPassword(email: String!, password: String!): TokenObject!
+  refreshAccessToken(refreshToken: String!): TokenObject!
+  refreshIdToken(refreshToken: String!): TokenObject!
+  signUpWithPassword(email: String!, password: String!): TokenObject!
+  verifyAccessToken(token: String): AccessTokenDataObject!
+  verifyIdToken(token: String!): IdTokenDataObject!
+}
+
 type Query {
   sampleQuery: Boolean!
   sampleUserAuthQuery: Boolean!
+  verifyAccessToken(token: String): AccessTokenDataObject!
+  verifyIdToken(token: String!): IdTokenDataObject!
+}
+
+type TokenObject {
+  accessToken: String
+  idToken: String
+  refreshToken: String
+  tokenType: String
 }
