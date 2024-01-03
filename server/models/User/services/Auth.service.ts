@@ -4,7 +4,13 @@ import { UserEntity } from "../entities/User.entity";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import CryptoJS from "crypto-js";
-import { CERT_PRIVATE, CERT_PUBLIC, expiresIn, issuer } from "env.config";
+import {
+  CERT_PRIVATE,
+  CERT_PUBLIC,
+  access_token_expiresIn,
+  refresh_token_expiresIn,
+  issuer,
+} from "env.config";
 import jwt from "jsonwebtoken";
 import { UserTokenEntity } from "../entities/UserToken.entity";
 import { AccessTokenDataObject } from "../objects/Token.object";
@@ -12,40 +18,46 @@ import { AccessTokenDataObject } from "../objects/Token.object";
 export const REFRESH_TOKEN_SUBJECT = "refresh_token";
 export const ACCESS_TOKEN_SUBJECT = "access_token";
 
+/**
+ *  로그인 시 인증 방법 입니다.
+ */
 export enum IProvider {
   NAVER = "naver",
   FACEBOOK = "facebook",
   GOOGLE = "google",
   KAKAO = "kakao",
   APPLE = "apple",
+  PASSWORD = "password",
 }
 
+export const TOKEN_TYPE = "Bearer";
+
 /**
- * {@link user } 인증을 위한 interface 입니다.
+ * {@link UserEntity } 사용자 인증을 위한 interface 입니다.
  */
 export interface IAuthUser {
   email: string;
-  provider: IProvider | "password";
-  identifyKey: string;
-}
-
-export interface IScope {
-  name: string;
-  expiredAt: number;
-}
-export interface IUserPermissions {
-  scope: [IScope];
+  provider: IProvider;
+  identifyKey: string; // provider가 Password 인 경우에는 비밀번호, 소셜 로그인인 경우 소셜 로그인의 OAuth Access Token.
 }
 
 export interface IRefreshTokenData {
-  oauthToken: { [provider: string]: any };
+  // oauthToken: { [provider: string]: any };
+  tokenId?: string;
   userId: string;
   email: string;
-  verifiedEmail?: boolean;
-  verifiedEmailAt?: Date;
-  passwordUpdatedDate?: Date;
   provider: string;
+  // verifiedEmail?: boolean;
+  // verifiedEmailAt?: Date;
+  // passwordUpdatedDate?: Date;
+}
+
+export interface IAccessTokenData {
   tokenId?: string;
+  userId: string;
+  email: string;
+  provider: string;
+  scope?: string[];
 }
 
 export default class AuthService {
@@ -184,17 +196,17 @@ export default class AuthService {
     const claims: IRefreshTokenData = {
       userId: user.id,
       email,
-      passwordUpdatedDate: user?.auth?.[0]?.updatedDate, // token에 password를 업데이트한 날짜 정보를 포함시키기 위한 코드 입니다.,
+      // passwordUpdatedDate: user?.auth?.[0]?.updatedDate, // token에 password를 업데이트한 날짜 정보를 포함시키기 위한 코드 입니다.,
       provider,
-      oauthToken,
+      // oauthToken,
     };
 
     const signOptions: jwt.SignOptions = {
       algorithm: "ES256",
       subject: REFRESH_TOKEN_SUBJECT,
-      expiresIn: expiresIn,
-      // expiresIn: 60 * 3, // 3m
+      expiresIn: refresh_token_expiresIn, // default value 3days (.env)
       issuer: issuer,
+      token_type: TOKEN_TYPE,
     };
 
     const userTokenEntity = new UserTokenEntity();
@@ -215,7 +227,7 @@ export default class AuthService {
 
     return {
       refreshToken,
-      expiresIn: expiresIn,
+      expiresIn: signOptions.expiresIn,
     };
   }
 
@@ -224,7 +236,7 @@ export default class AuthService {
     if (token.sub !== REFRESH_TOKEN_SUBJECT) {
       throw new Error("Invalid token");
     }
-    const { userId, email, provider, tokenId, passwordUpdatedDate } = token;
+    const { tokenId, userId, email, provider } = token;
 
     const dataSource = await DataSourceService.getDataSource();
 
@@ -237,30 +249,27 @@ export default class AuthService {
       throw new Error("Invalid token");
     }
 
-    const user = await dataSource.manager
-      .createQueryBuilder(UserEntity, "user")
-      .where("user.id = :userId", { userId })
-      .getOne();
+    // const user = await dataSource.manager
+    //   .createQueryBuilder(UserEntity, "user")
+    //   .where("user.id = :userId", { userId })
+    //   .getOne();
 
-    const isOAuth = Object.values(IProvider).includes(provider as IProvider);
+    // const isOAuth = Object.values(IProvider).includes(provider as IProvider);
 
-    const scope = [];
+    const scope = ["userInfo"];
 
-    const claims: AccessTokenDataObject & {
-      oauthToken: { [provider: string]: any };
-    } = {
+    const claims: IAccessTokenData = {
+      tokenId: token.tokenId,
       userId,
       email,
-      passwordUpdatedDate,
       provider,
-      oauthToken: token.oauthToken,
-      tokenId: token.tokenId,
+      scope: scope,
     };
 
     const signOptions: jwt.SignOptions = {
       algorithm: "ES256",
       subject: ACCESS_TOKEN_SUBJECT,
-      expiresIn: expiresIn,
+      expiresIn: access_token_expiresIn,
       issuer: issuer,
     };
 

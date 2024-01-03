@@ -24,15 +24,17 @@ if (isTest) {
   };
 }
 
-const expiresIn = 7200;
-const issuer = "jonghwan";
+const refresh_token_expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN;
+const access_token_expiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN;
+const issuer = "http://localhost:8080";
 
 module.exports = {
   PORT: process.env.PORT || 8080,
   DEV: isDev,
   CERT_PUBLIC: certs.PUBLIC,
   CERT_PRIVATE: certs.PRIVATE,
-  expiresIn: expiresIn,
+  refresh_token_expiresIn: refresh_token_expiresIn,
+  access_token_expiresIn: access_token_expiresIn,
   issuer: issuer,
   DATABASE: {
     type: process.env.DB_TYPE,

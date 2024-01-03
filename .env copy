@@ -13,6 +13,9 @@ DB_DATABASE=jong_cms
 
 NEXT_PUBLIC_ORIGIN=http://localhost:8080;
 
+REFRESH_TOKEN_EXPIRES_IN=259200 # 60(sec) * 60(min) * 24(hour) * 3(days) = 3days 
+ACCESS_TOKEN_EXPIRES_IN=1800 # 60(sec) * 30(min)= 30 min
+
 OAUTH_GOOGLE_REDIRECT_URI=http://localhost:8080/auth/google/handler
 OAUTH_GOOGLE_CLIENT_ID=153324860812-pfrlluiqufcmulet0hauon31h3llmij7.apps.googleusercontent.com
 OAUTH_GOOGLE_CLIENT_SECRET=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
