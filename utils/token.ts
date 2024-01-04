@@ -56,7 +56,7 @@ export const resetToken = async (client) => {
  */
 export const storeToken = async (
   client,
-  { access_token = undefined, refresh_token = undefined }
+  { access_token = undefined, id_token = undefined, refresh_token = undefined }
 ) => {
   if (refresh_token) {
     document.cookie = cookie.serialize("refresh_token", refresh_token, {
@@ -70,6 +70,17 @@ export const storeToken = async (
     });
   } else if (refresh_token) {
     document.cookie = cookie.serialize("access_token", "", {
+      path: "/",
+      maxAge: -1,
+    });
+  }
+
+  if (id_token) {
+    document.cookie = cookie.serialize("id_token", id_token, {
+      path: "/",
+    });
+  } else if (refresh_token) {
+    document.cookie = cookie.serialize("id_token", "", {
       path: "/",
       maxAge: -1,
     });
