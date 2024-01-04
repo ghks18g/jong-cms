@@ -10,8 +10,6 @@ const MRLOGIN_PROJECT_ID = process.env.NEXT_PUBLIC_MRLOGIN_PROJECT_ID;
 
 export const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
-// let apolloClient;
-
 function createApolloClient(cookies) {
   const isSsr = typeof window === "undefined";
   const uri = isSsr ? `http://localhost:${PORT}/graphql` : GRAPHQL_URI;
@@ -28,20 +26,19 @@ function createApolloClient(cookies) {
 
     try {
       const { access_token, refresh_token } = cookies;
-      // const access_token = localStorage.getItem(
-      //   `access_token_${MRLOGIN_PROJECT_ID}`
-      // );
-      // const refresh_token = localStorage.getItem(
-      //   `refresh_token_${MRLOGIN_PROJECT_ID}`
-      // );
 
-      token = await getToken({ access_token, refresh_token }, uri);
+      const { access_token: available_access_token, id_token } = await getToken(
+        { access_token, refresh_token },
+        uri
+      );
+
+      token = available_access_token;
     } catch (e) {}
 
     return {
       headers: {
         ...headers,
-        ...{ authorization: `Bearer ${token}` },
+        ...(token ? { authorization: `Bearer ${token}` } : undefined),
       },
     };
   });

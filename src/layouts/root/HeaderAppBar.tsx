@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -12,17 +12,30 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
+import useAuth from "client/hooks/useAuth";
+import { useRouter } from "next/router";
 
 const pages = ["Products", "Pricing", "Blog"];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+
+interface IProfileOptions {
+  name: string;
+  path: string;
+}
 
 function HeaderAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
-    null
-  );
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
-    null
-  );
+  const { user } = useAuth();
+  const router = useRouter();
+  const propfileOptions: IProfileOptions[] = useMemo(() => {
+    return [
+      { name: "Profile", path: "/profile" },
+      { name: "Account", path: "/account" },
+      { name: "Dashboard", path: "/dashboard" },
+      { name: !!user ? "Logout" : "Login", path: !!user ? "/logout" : "login" },
+    ];
+  }, [user]);
+
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -35,7 +48,10 @@ function HeaderAppBar() {
     setAnchorElNav(null);
   };
 
-  const handleCloseUserMenu = () => {
+  const handleCloseUserMenu = (path?: string) => {
+    if (!!path) {
+      router.replace(path);
+    }
     setAnchorElUser(null);
   };
 
@@ -149,11 +165,16 @@ function HeaderAppBar() {
                 horizontal: "right",
               }}
               open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
+              onClose={() => handleCloseUserMenu()}
             >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography>
+              {propfileOptions.map((propfileOption) => (
+                <MenuItem
+                  key={propfileOption.name}
+                  onClick={() => handleCloseUserMenu(propfileOption?.path)}
+                >
+                  <Typography textAlign="center">
+                    {propfileOption.name}
+                  </Typography>
                 </MenuItem>
               ))}
             </Menu>

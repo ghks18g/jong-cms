@@ -39,7 +39,7 @@ function AppWrapper(props: AppWrapperProps) {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <AuthProvider>
+      <AuthProvider cookies={cookies}>
         <ThemeProvider>
           <NotistackProvider>
             <ProgressBar />

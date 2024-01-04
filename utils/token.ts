@@ -2,11 +2,13 @@
  * @packageDocumentation
  */
 
-// import {
-//     RefreshTokenDocument,
-//     RefreshTokenMutationResult,
-//     TokenObject,
-//   } from 'client/generated/graphql';
+import {
+  RefreshAccessTokenDocument,
+  RefreshIdTokenDocument,
+  RefreshAccessTokenMutationResult,
+  RefreshIdTokenMutationResult,
+  TokenObject,
+} from "client/generated/graphql";
 import cookie from "cookie";
 import gql from "graphql-tag";
 import jwt from "jsonwebtoken";
@@ -24,6 +26,11 @@ const MUTATION_SIGNOUT = gql`
  *
  */
 export const resetToken = async (client) => {
+  document.cookie = cookie.serialize("id_token", "", {
+    path: "/",
+    maxAge: -1,
+  });
+
   document.cookie = cookie.serialize("access_token", "", {
     path: "/",
     maxAge: -1,
@@ -99,22 +106,36 @@ export const getToken = async (
   }
 
   if (refresh_token) {
-    //   const res = await fetch(uri, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       operationName: null,
-    //       query: RefreshTokenDocument.loc.source.body,
-    //       variables: {
-    //         refreshToken: refresh_token,
-    //       },
-    //     }),
-    //   });
+    const res_for_access_token = await fetch(uri, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        operationName: null,
+        query: RefreshAccessTokenDocument.loc.source.body,
+        variables: {
+          refreshToken: refresh_token,
+        },
+      }),
+    });
 
-    //   const { data }: RefreshTokenMutationResult = await res.json();
-    //   const access_token = data.refreshToken.accessToken;
-    const access_token = "access token sample";
-    storeToken(null, { access_token });
-    return access_token;
+    const res_for_id_token = await fetch(uri, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        operationName: null,
+        query: RefreshIdTokenDocument.loc.source.body,
+        variables: {
+          refreshToken: refresh_token,
+        },
+      }),
+    });
+    const { data: data_access_token }: RefreshAccessTokenMutationResult =
+      await res_for_access_token.json();
+    const { data: data_id_token }: RefreshIdTokenMutationResult =
+      await res_for_id_token.json();
+    const access_token = data_access_token.refreshAccessToken.accessToken;
+    const id_token = data_id_token.refreshIdToken.idToken;
+
+    return { access_token, id_token };
   }
 };

@@ -5,11 +5,9 @@ import {
   useEffect,
   useReducer,
 } from "react";
+import { parseCookies } from "utils/token";
 
-// import {
-//     useJwtVerifyLazyQuery,
-//     useJwtVerifyQuery,
-//   } from "client/generated/graphql";
+import { useVerifyIdTokenLazyQuery } from "client/generated/graphql";
 
 // -------------- Auth Context Start ----------------
 export type ActionMap<M extends { [index: string]: any }> = {
@@ -77,24 +75,61 @@ const AuthContext = createContext<AuthState | null>(null);
 
 // -------------- Auth Provider Start ----------------
 type AuthProviderProps = {
+  cookies: Partial<{
+    [key: string]: string;
+  }>;
   children: ReactNode;
 };
 
-function AuthProvider({ children }: AuthProviderProps) {
+function AuthProvider({ cookies, children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(AuthReducer, initialState);
 
-  // TODO token Verify Graphql Code ... ( jwt Verify )
-
+  const { id_token } = cookies;
+  // TODO token Verify Graphql Code ... ( Verify )
+  const [verifyIdToken] = useVerifyIdTokenLazyQuery({
+    fetchPolicy: "network-only",
+    notifyOnNetworkStatusChange: true,
+    onCompleted: (data) => {
+      const user = data?.verifyIdToken;
+      if (user) {
+        dispatch({
+          type: Types.Initial,
+          payload: {
+            isAuthenticated: true,
+            user,
+          },
+        });
+      } else {
+        dispatch({
+          type: Types.Initial,
+          payload: {
+            isAuthenticated: false,
+            user: null,
+          },
+        });
+      }
+    },
+    onError: (err) => {
+      console.error(err);
+      dispatch({
+        type: Types.Initial,
+        payload: {
+          isAuthenticated: false,
+          user: null,
+        },
+      });
+    },
+  });
   useEffect(() => {
     dispatch({
       type: Types.Reset,
     });
 
-    // jwtVerifyQuery({
-    //   variables: {
-
-    //   },
-    // });
+    verifyIdToken({
+      variables: {
+        token: id_token,
+      },
+    });
   }, []);
 
   return (
