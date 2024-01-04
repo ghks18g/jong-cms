@@ -1,0 +1,43 @@
+query VerifyAccessToken($token: String) {
+  verifyAccessToken(token: $token) {
+    tokenId
+    userId
+    email
+    provider
+    scope
+  }
+}
+
+query VerifyIdToken($token: String!) {
+  verifyIdToken(token: $token) {
+    tokenId
+    userId
+    name
+    picture
+    email
+    emailVerified
+    emailVerifiedAt
+    phoneNumber
+    phoneNumberVerified
+    phoneNumberVerifiedAt
+    fcmToken
+  }
+}
+
+mutation RefreshAccessToken($refreshToken: String!) {
+  refreshAccessToken(refreshToken: $refreshToken) {
+    accessToken
+    refreshToken
+    idToken
+    tokenType
+  }
+}
+
+mutation RefreshIdToken($refreshToken: String!) {
+  refreshIdToken(refreshToken: $refreshToken) {
+    accessToken
+    refreshToken
+    idToken
+    tokenType
+  }
+}
