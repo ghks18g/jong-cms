@@ -5,6 +5,8 @@ import { parseCookies, storeToken } from "utils/token";
 import useAuth from "client/hooks/useAuth";
 import { AuthContext } from "client/contexts/AuthContext";
 import {
+  useCheckRegistryMutation,
+  useLoginWithPasswordMutation,
   useVerifyAccessTokenQuery,
   useVerifyIdTokenQuery,
 } from "client/generated/graphql";
@@ -21,6 +23,8 @@ import {
 } from "@mui/material";
 import { useIdentityFormik } from "../hooks/useIdentityFormik";
 import AdbIcon from "@mui/icons-material/Adb";
+import { useSnackbar } from "notistack";
+import { useLoginFormik } from "../hooks/useLoginFormik";
 const NEXT_PUBLIC_ORIGIN = process.env.NEXT_PUBLIC_ORIGIN;
 
 interface ILoginLaunchView {
@@ -35,6 +39,9 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
   const [error, setError] = useState<string>(undefined);
   const origin = NEXT_PUBLIC_ORIGIN;
   const { access_token, id_token, refresh_token } = cookies;
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [registedEmail, setRegistedEmail] = useState<boolean>(undefined);
 
   const {
     data: idTokenData,
@@ -48,6 +55,33 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
     onCompleted: (data) => {
       const queryObject = { access_token, id_token, refresh_token };
       completeLogin(redirectUri, queryObject);
+    },
+  });
+
+  const [checkRegistryMutation] = useCheckRegistryMutation({
+    fetchPolicy: "network-only",
+    onCompleted: (data) => {
+      setRegistedEmail(data?.checkRegistry);
+    },
+    onError: (err) => {
+      console.log(err);
+      setRegistedEmail(false);
+    },
+  });
+
+  const [loginWithPasswordMutaiton] = useLoginWithPasswordMutation({
+    fetchPolicy: "network-only",
+    onCompleted: (data) => {
+      const { accessToken, idToken, refreshToken } = data?.loginWithPassword;
+      const queryObject = {
+        access_token: accessToken,
+        id_token: idToken,
+        refresh_token: refreshToken,
+      };
+      completeLogin(redirectUri, queryObject);
+    },
+    onError: (err) => {
+      console.log("[loginWithPasswordMutaiton] err: ", err);
     },
   });
 
@@ -93,9 +127,27 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
     return results;
   }, []);
 
-  const onLoginSubmit = () => {};
-  const { values, handleSubmit, handleChange, errors, touched, isSubmitting } =
-    useIdentityFormik(onLoginSubmit);
+  const onLoginSubmit = (values) => {
+    loginWithPasswordMutaiton({
+      variables: {
+        email: values?.identity,
+        password: values?.password,
+      },
+    });
+  };
+
+  const { values, handleSubmit, handleChange, isSubmitting } =
+    useLoginFormik(onLoginSubmit);
+
+  const handleOnBlurEmail = () => {
+    if (values?.identity?.trim()?.length !== 0) {
+      checkRegistryMutation({
+        variables: {
+          email: values?.identity,
+        },
+      });
+    }
+  };
 
   if (error) {
     return (
@@ -176,8 +228,28 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
                           name="identity"
                           autoComplete="identity"
                           autoFocus
-                          onChange={handleChange}
+                          onChange={(e) => {
+                            handleChange(e);
+                          }}
+                          onBlur={handleOnBlurEmail}
                           value={values.identity}
+                          error={false}
+                          // autoFocus
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          type="password"
+                          variant="outlined"
+                          required
+                          fullWidth
+                          id="password"
+                          label={"비밀번호"}
+                          name="password"
+                          autoComplete="password"
+                          //   autoFocus
+                          onChange={handleChange}
+                          value={values?.password}
                           helperText={
                             ""
                             // touched.identity &&
@@ -195,14 +267,15 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
                           // autoFocus
                         />
                       </Grid>
+
                       <Grid item xs={12}>
                         <Button
                           type="submit"
                           fullWidth
                           variant="contained"
-                          color="primary"
+                          color={"primary"}
                           size="large"
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || !registedEmail}
                           endIcon={
                             isSubmitting ? (
                               <CircularProgress size={16} />

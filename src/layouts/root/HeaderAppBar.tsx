@@ -30,7 +30,10 @@ function HeaderAppBar() {
       { name: "Profile", path: "/profile" },
       { name: "Account", path: "/account" },
       { name: "Dashboard", path: "/dashboard" },
-      { name: !!user ? "Logout" : "Login", path: !!user ? "/logout" : "login" },
+      {
+        name: !!user ? "Logout" : "Login",
+        path: !!user ? "/logout" : "/login",
+      },
     ];
   }, [user]);
 
@@ -50,7 +53,10 @@ function HeaderAppBar() {
 
   const handleCloseUserMenu = (path?: string) => {
     if (!!path) {
-      router.replace(path);
+      router.push({
+        pathname: path,
+        query: { redirect_uri: router?.pathname },
+      });
     }
     setAnchorElUser(null);
   };
