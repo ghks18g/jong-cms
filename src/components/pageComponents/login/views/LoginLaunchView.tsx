@@ -61,6 +61,12 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
   const [checkRegistryMutation] = useCheckRegistryMutation({
     fetchPolicy: "network-only",
     onCompleted: (data) => {
+      if (!data?.checkRegistry) {
+        enqueueSnackbar(
+          "이메일로 가입된 정보가 존재하지 않습니다. 회원가입을 진행 해주세요.",
+          { variant: "warning", preventDuplicate: true }
+        );
+      }
       setRegistedEmail(data?.checkRegistry);
     },
     onError: (err) => {
@@ -121,7 +127,9 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
       alt: "Email",
       icon: "/icons-v2/social/email.svg",
       href:
-        origin + "/login/identify" + `?${queryString}&${backUriQueryString}`,
+        origin +
+        "/login/sign_up/email" +
+        `?${queryString}&${backUriQueryString}`,
     });
 
     return results;
@@ -208,6 +216,7 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
           </Typography>
         </Grid>
         {methods?.map(({ alt, icon, href }, j) => {
+          console.log("href: ", href);
           if (alt.toLowerCase() === "email") {
             return (
               <>
@@ -278,7 +287,7 @@ function LoginLaunchView({ cookies }: ILoginLaunchView) {
                           disabled={isSubmitting || !registedEmail}
                           endIcon={
                             isSubmitting ? (
-                              <CircularProgress size={16} />
+                              <CircularProgress size={16} color="secondary" />
                             ) : undefined
                           }
                         >
