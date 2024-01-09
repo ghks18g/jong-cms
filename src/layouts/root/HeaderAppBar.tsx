@@ -22,6 +22,8 @@ interface IProfileOptions {
   path: string;
 }
 
+const NEXT_PUBLIC_ORIGIN = process.env.NEXT_PUBLIC_ORIGIN;
+
 function HeaderAppBar() {
   const { user } = useAuth();
   const router = useRouter();
@@ -53,9 +55,10 @@ function HeaderAppBar() {
 
   const handleCloseUserMenu = (path?: string) => {
     if (!!path) {
+      const backUri = NEXT_PUBLIC_ORIGIN + `${router.pathname}`;
       router.push({
         pathname: path,
-        query: { redirect_uri: router?.pathname },
+        query: { redirect_uri: router?.pathname, back_uri: backUri },
       });
     }
     setAnchorElUser(null);

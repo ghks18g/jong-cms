@@ -1,22 +1,27 @@
 NODE_ENV=development
-NEXT_PUBLIC_PORT=8080
-PORT=8080
-PORTS=8443
-GRAPHQL_ENDPOINT=https://localhost:8443
+NEXT_PUBLIC_PORT=8080 # Your Http Port
+PORT=8080 # Your Http Port
+PORTS=8443 # Your Https Port
+GRAPHQL_ENDPOINT=https://localhost:8443 # Your Graphql EndPoint 
 
 
-DB_HOST=127.0.0.1
-DB_PORT=5433
-DB_USERNAME=root
-DB_PASSWORD=EXf3hZXz4Kzqx5sr
-DB_DATABASE=jong_cms
+DB_HOST=127.0.0.1 # Your DB Host IP
+DB_PORT=5433 # Your DB Port 
+DB_USERNAME=root # Your DB User Name
+DB_PASSWORD=EXf3hZXz4Kzqx5sr # Your DB Password
+DB_DATABASE=jong_cms # Your DB Name
 
-NEXT_PUBLIC_ORIGIN=http://localhost:8080;
+NEXT_PUBLIC_ORIGIN=http://localhost:8080; # Your Server Domain 
 
 REFRESH_TOKEN_EXPIRES_IN=259200 # 60(sec) * 60(min) * 24(hour) * 3(days) = 3days 
 ACCESS_TOKEN_EXPIRES_IN=1800 # 60(sec) * 30(min)= 30 min
 ID_TOKEN_EXPIRES_IN=36000 # 60(sec) * 60(min) * 10(hour) = 10 hours
 
-OAUTH_GOOGLE_REDIRECT_URI=http://localhost:8080/auth/google/handler
-OAUTH_GOOGLE_CLIENT_ID=153324860812-pfrlluiqufcmulet0hauon31h3llmij7.apps.googleusercontent.com
-OAUTH_GOOGLE_CLIENT_SECRET=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
+OAUTH_GOOGLE_REDIRECT_URI=http://localhost:8080/auth/google/handler # Your Google OAuth Redirect URI 
+OAUTH_GOOGLE_CLIENT_ID="asdasdasdasdasdasdasdasdasdasdasdasdasdasd" # Your Google OAuth Client Id
+OAUTH_GOOGLE_CLIENT_SECRET="asdasdasdasdasdasdadasdasdasdasdasd" # Your Google OAuth Client Secret
+
+AWS_ACCESS_KEY="YOUR_AWS_ACCESS_KEY"
+AWS_SECRET_KEY="YOUR_AWS_ACCESS_SECRET_KEY"
+AWS_SES_REGION="YOUR_AWS_SES_REGION"
+AWS_SES_VERIFIED_SOURCE="YOUR_AWS_SES_VERIFIED_IDENTITY"
