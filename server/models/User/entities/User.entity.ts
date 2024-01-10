@@ -17,6 +17,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { UserAuthEntity } from "./UserAuth.entity";
+import { UserEmailVerifyLogEntity } from "./UserEmailVerifyLog.entity";
 
 @Entity()
 export class UserEntity extends BaseEntity {
@@ -70,6 +71,9 @@ export class UserEntity extends BaseEntity {
   // 관계 -----------------
   @OneToMany((type) => UserAuthEntity, (entity) => entity.user)
   auth: UserAuthEntity[];
+
+  @OneToMany((type) => UserEmailVerifyLogEntity, (entity) => entity.user)
+  emailVerifyLog: UserEmailVerifyLogEntity[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdDate: Date;

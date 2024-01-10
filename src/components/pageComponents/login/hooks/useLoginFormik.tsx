@@ -1,8 +1,3 @@
-/**
- * @author BounceCode, Inc.
- * @packageDocumentation
- */
-
 import { useEffect } from "react";
 import { useFormik, FormikConfig, FormikValues, FormikHelpers } from "formik";
 import * as Yup from "yup";

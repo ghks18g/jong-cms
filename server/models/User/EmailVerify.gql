@@ -1,0 +1,16 @@
+mutation RequestEmailVerify($token: String!) {
+  requestEmailVerify(token: $token)
+}
+
+mutation VerifyEmail($code: String!, $otpId: String!, $userId: String!) {
+  verifyEmail(code: $code, otpId: $otpId, userId: $userId)
+}
+
+mutation ConfirmEmailVerify($otpId: String!, $token: String!) {
+  confirmEmailVerify(otpId: $otpId, token: $token) {
+    accessToken
+    refreshToken
+    idToken
+    tokenType
+  }
+}

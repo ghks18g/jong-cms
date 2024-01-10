@@ -5,6 +5,7 @@ import * as path from "path";
 import { buildSchemaSync, NonEmptyArray } from "type-graphql";
 import { GraphQLSchema } from "graphql";
 import { applyMiddleware } from "graphql-middleware";
+import { DateTimeResolver } from "graphql-scalars";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import cors from "cors";
@@ -33,7 +34,14 @@ const resolvers: NonEmptyArray<Function> | NonEmptyArray<string> = [
 const schema = applyMiddleware(
   buildSchemaSync({
     resolvers,
+    validate: { forbidUnknownValues: false },
     emitSchemaFile: path.resolve(__dirname, "generated/schema.gql"),
+    scalarsMap: [
+      {
+        type: Date,
+        scalar: DateTimeResolver,
+      },
+    ],
   })
   // permissions,
 );

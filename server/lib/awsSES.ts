@@ -88,6 +88,7 @@ export const sendMail = async ({
     const sendEmailCommand = new SendEmailCommand(input);
     const res: SendBounceCommandOutput = await client.send(sendEmailCommand);
     console.log("[ awsSES ] 메일 전송 완료: ", res.$metadata);
+    return res.$metadata;
   } catch (e) {
     // console.error("[ awsSES ] sendMail Error :", e);
     throw new Error("[ awsSES ] 메일 전송 실패, sendMail Error :", e);

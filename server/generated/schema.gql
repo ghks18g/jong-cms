@@ -12,7 +12,7 @@ type AccessTokenDataObject {
 }
 
 """
-The javascript `Date` as string. Type represents date and time as the ISO Date string.
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 """
 scalar DateTime
 
@@ -32,11 +32,14 @@ type IdTokenDataObject {
 
 type Mutation {
   checkRegistry(email: String!): Boolean!
+  confirmEmailVerify(otpId: String!, token: String!): TokenObject!
   loginWithPassword(email: String!, password: String!): TokenObject!
   refreshAccessToken(refreshToken: String!): TokenObject!
   refreshIdToken(refreshToken: String!): TokenObject!
+  requestEmailVerify(token: String!): String!
   signUpWithPassword(email: String!, password: String!): TokenObject!
   verifyAccessToken(token: String): AccessTokenDataObject!
+  verifyEmail(code: String!, otpId: String!, userId: String!): Boolean!
   verifyIdToken(token: String!): IdTokenDataObject!
 }
 
