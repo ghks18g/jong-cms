@@ -35,6 +35,7 @@ function SignUpEmailView() {
         const queryObject = {
           back_uri: backUri,
           identity: values.identity,
+          redirect_uri: redirectUri,
         };
         router.push({
           pathname: NEXT_PUBLIC_ORIGIN + "/login/sign_up/password",

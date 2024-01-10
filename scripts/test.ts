@@ -31,7 +31,7 @@ import { ISendMailSES, sendMail } from "../server/lib/awsSES";
           </div>`,
     },
     fromAddress: `no-reqply@tomomi.site`,
-    toAddresses: ["ghks18g@gmail.com"],
+    toAddresses: ["akels1@gmail.com"],
     replyToAddresses: ["ghks18g@gmail.com"],
   };
   await sendMail(emailData);

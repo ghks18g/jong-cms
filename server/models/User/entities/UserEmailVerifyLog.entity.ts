@@ -37,12 +37,12 @@ export class UserEmailVerifyLogEntity extends BaseEntity {
   @Column({ nullable: true })
   verifiedAt: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: "timestamptz" })
   createdDate: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: "timestamptz" })
   updatedDate: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ type: "timestamptz" })
   deletedDate: Date;
 }

@@ -27,10 +27,10 @@ import palette from "src/theme/palette";
 
 const AWS_SES_VERIFIED_SOURCE = process.env.AWS_SES_VERIFIED_SOURCE;
 
-export enum Protocol {
-  HTTP = "http",
-  HTTPS = "https",
-}
+// export enum Protocol {
+//   HTTP = "http",
+//   HTTPS = "https",
+// }
 
 /**
  *  로그인 시 인증 방법 입니다.
@@ -122,7 +122,8 @@ export default class AuthService {
 
     let userAuthQueryBuilder = dataSource.manager
       .createQueryBuilder(UserAuthEntity, "userAuth")
-      .leftJoinAndSelect("userAuth.user", "user");
+      .leftJoinAndSelect("userAuth.user", "user")
+      .where("user.email = :email", { email });
 
     if (provider === "password") {
     } else {
@@ -166,6 +167,7 @@ export default class AuthService {
           ? await bcrypt.hash(identifyKey, 10)
           : identifyKey;
       userAuthEntity.identifyConnectedAt = new Date();
+
       await dataSource.manager.save(userAuthEntity);
 
       return user;
@@ -514,7 +516,7 @@ export default class AuthService {
     userId: string,
     // email: string,
     identifyProvider: string,
-    protocal: Protocol = Protocol.HTTPS,
+
     origin: string
   ) {
     const dataSource = await DataSourceService.getDataSource();
@@ -652,26 +654,28 @@ export default class AuthService {
 
     // userAuth( 사용자 로그인 인증 수단 )업데이트
     await dataSource
-      .createQueryBuilder(UserAuthEntity, "userAuth")
-      .update()
+      .createQueryBuilder()
+      .update(UserAuthEntity)
       .set({ otpVerified: true }) // otp 인증 완료
-      .where("userAuth.id = :id", { id: userAuth.id })
+      .where(`id = :id`, { id: userAuth.id })
       .execute();
 
     // userEmailVerifyLog ( 이메일 인증 내역 )업데이트
     await dataSource
-      .createQueryBuilder(UserEmailVerifyLogEntity, "emailVerify")
-      .update()
+      .createQueryBuilder()
+      .update(UserEmailVerifyLogEntity)
       .set({ verified: true, verifiedAt: new Date() }) // 이메일 인증 완료
-      .where("emailVerify.id = :id", { id: userAuth.user.emailVerifyLog[0].id })
+      .where(`id = :id`, {
+        id: userAuth.user.emailVerifyLog[0].id,
+      })
       .execute();
 
     // user ( 사용자 정보 ) 업데이트
     await dataSource
-      .createQueryBuilder(UserEntity, "user")
-      .update()
+      .createQueryBuilder()
+      .update(UserEntity)
       .set({ emailVerified: true, emailVerifiedAt: new Date() })
-      .where("user.id = :userId", { userId })
+      .where("id = :userId", { userId })
       .execute();
 
     return true;
@@ -681,6 +685,17 @@ export default class AuthService {
    * 사용자의 이메일 인증이 완료된 것을 확인하여 token 을 재발급하는 기능 입니다.
    */
   async confirmEmailVerify(token: string, otpId: string) {
+    const dataSource = await DataSourceService.getDataSource();
+
+    const userAuth = await dataSource
+      .createQueryBuilder(UserAuthEntity, "userAuth")
+      .leftJoinAndSelect("userAuth.user", "user")
+      .where("userAuth.otpId = :otpId", { otpId })
+      .getOne();
+
+    if (!userAuth.otpVerified) {
+      throw new Error("이메일 인증이 완료되지 않았습니다.");
+    }
     // token 재발급
     const { newRefreshToken: refreshToken } =
       await this.createRefreshTokenByRefreshToken(token);
@@ -688,14 +703,12 @@ export default class AuthService {
     const { accessToken } = await this.createAccessToken(refreshToken);
     const { idToken } = await this.createIdToken(refreshToken);
 
-    const dataSource = await DataSourceService.getDataSource();
-
     // userAuth - otp 정보 초기화
     await dataSource
-      .createQueryBuilder(UserAuthEntity, "userAuth")
-      .update()
+      .createQueryBuilder()
+      .update(UserAuthEntity)
       .set({ otpId: null, otpCode: null, otpExpires: null })
-      .where("userAuth.otpId = :otpId", { otpId })
+      .where("otpId = :otpId", { otpId })
       .execute();
 
     // token Object 생성.

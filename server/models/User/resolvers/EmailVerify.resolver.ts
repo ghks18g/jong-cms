@@ -2,7 +2,6 @@ import { GraphQLError } from "graphql";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import AuthService, {
   IIdTokenData,
-  Protocol,
   TokenSubject,
   TOKEN_TYPE,
 } from "../services/Auth.service";
@@ -59,8 +58,9 @@ export class EmailVerifyResolver {
       const otpId = await authService.requestEmailVerify(
         userId,
         provider,
-        ctx.req.protocol as Protocol,
-        ctx.req.headers.origin
+        process.env.NODE_ENV === "development"
+          ? "http://192.168.0.7:8080"
+          : ctx.req.headers.origin
       );
 
       return otpId;

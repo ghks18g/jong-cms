@@ -15,17 +15,39 @@ import {
 } from "client/generated/graphql";
 import { useSignUpFormik } from "../hooks/useSignUpFormik";
 import { useEffect } from "react";
+import useCompleteLogin from "../hooks/useCompleteLogin";
+import { storeToken } from "utils/token";
+import { useApolloClient } from "@apollo/client";
 
-function SignUpEmailView() {
+function SignUpEmailPasswordView() {
   const router = useRouter();
   const redirectUri = router?.query?.redirect_uri as string;
   const identity = router?.query?.identity as string;
   const { enqueueSnackbar } = useSnackbar();
+  const client = useApolloClient();
+  const completeLogin = useCompleteLogin();
 
   const [signUpWithPasswordMutation] = useSignUpWithPasswordMutation({
     fetchPolicy: "network-only",
     onCompleted: (data) => {
-      const { accessToken, idToken, refreshToken } = data?.signUpWithPassword;
+      const {
+        accessToken: access_token,
+        idToken: id_token,
+        refreshToken: refresh_token,
+      } = data?.signUpWithPassword;
+
+      storeToken(client, {
+        access_token: data?.signUpWithPassword.accessToken,
+        id_token: data?.signUpWithPassword.idToken,
+        refresh_token: data?.signUpWithPassword.refreshToken,
+      });
+
+      window.location.href =
+        "/verify/email" +
+        `?${new URLSearchParams({
+          redirect_uri: redirectUri,
+          back_uri: "/login",
+        }).toString()}`;
     },
     onError: (err) => {
       console.log(err);
@@ -133,4 +155,4 @@ function SignUpEmailView() {
   );
 }
 
-export default SignUpEmailView;
+export default SignUpEmailPasswordView;

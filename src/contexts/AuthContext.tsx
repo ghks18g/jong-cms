@@ -120,16 +120,19 @@ function AuthProvider({ cookies, children }: AuthProviderProps) {
       });
     },
   });
+
   useEffect(() => {
     dispatch({
       type: Types.Reset,
     });
 
-    verifyIdToken({
-      variables: {
-        token: id_token,
-      },
-    });
+    if (id_token) {
+      verifyIdToken({
+        variables: {
+          token: id_token,
+        },
+      });
+    }
   }, []);
 
   return (
